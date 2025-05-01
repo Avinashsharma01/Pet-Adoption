@@ -1,6 +1,8 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import Navigation from "./components/Navigation";
 import LandingPage from "./pages/LandingPage";
 import Login from "./pages/Login";
@@ -9,6 +11,7 @@ import PetUpload from "./pages/PetUpload";
 import PetListing from "./pages/PetListing";
 import PetDetail from "./pages/PetDetail";
 import Favorites from "./pages/Favorites";
+import UserPets from "./pages/UserPets";
 import PrivateRoute from "./components/PrivateRoute";
 import Profile from "./pages/Profile";
 import Footer from "./components/Footer";
@@ -44,6 +47,14 @@ function App() {
                                 }
                             />
                             <Route
+                                path="/my-pets"
+                                element={
+                                    <PrivateRoute>
+                                        <UserPets />
+                                    </PrivateRoute>
+                                }
+                            />
+                            <Route
                                 path="/profile"
                                 element={
                                     <PrivateRoute>
@@ -54,6 +65,7 @@ function App() {
                         </Routes>
                     </main>
                     <Footer />
+                    <ToastContainer position="bottom-right" />
                 </div>
             </AuthProvider>
         </Router>

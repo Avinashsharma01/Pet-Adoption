@@ -12,6 +12,9 @@ import {
     getDocs,
 } from "firebase/firestore";
 import { db } from "../firebase/config";
+import { deleteUserAccount } from "../firebase/petServices";
+import DeleteConfirmModal from "../components/DeleteConfirmModal";
+import { toast } from "react-toastify";
 import {
     FaUser,
     FaEnvelope,
@@ -20,6 +23,7 @@ import {
     FaPaw,
     FaExclamationTriangle,
     FaCheck,
+    FaTrash,
 } from "react-icons/fa";
 
 const Profile = () => {
@@ -33,6 +37,9 @@ const Profile = () => {
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
     const [activeTab, setActiveTab] = useState("profile");
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [password, setPassword] = useState("");
+    const [isDeleting, setIsDeleting] = useState(false);
 
     // Form state for profile
     const [formData, setFormData] = useState({
@@ -153,6 +160,28 @@ const Profile = () => {
         } catch (error) {
             console.error("Failed to log out", error);
             setError("Failed to log out. Please try again.");
+        }
+    };
+
+    const handleDeleteAccount = async () => {
+        if (!password) {
+            toast.error("Please enter your password");
+            return;
+        }
+
+        setIsDeleting(true);
+        try {
+            await deleteUserAccount(password);
+            toast.success("Your account has been deleted");
+            await logout();
+            navigate("/");
+        } catch (error) {
+            console.error("Error deleting account:", error);
+            toast.error(error.message || "Failed to delete account");
+        } finally {
+            setIsDeleting(false);
+            setIsDeleteModalOpen(false);
+            setPassword("");
         }
     };
 
@@ -355,6 +384,25 @@ const Profile = () => {
                                     </div>
                                 </div>
                             </form>
+
+                            {/* Danger Zone */}
+                            <div className="mt-12 border-t pt-8">
+                                <h3 className="text-xl font-semibold text-red-600 mb-2">
+                                    Danger Zone
+                                </h3>
+                                <p className="text-gray-600 mb-4">
+                                    Permanently delete your account and all
+                                    associated data. This action cannot be
+                                    undone.
+                                </p>
+                                <button
+                                    onClick={() => setIsDeleteModalOpen(true)}
+                                    className="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition"
+                                >
+                                    <FaTrash className="mr-2" />
+                                    Delete Account
+                                </button>
+                            </div>
                         </div>
                     )}
 
@@ -446,6 +494,21 @@ const Profile = () => {
                         </div>
                     )}
                 </div>
+
+                {/* Delete Account Modal */}
+                <DeleteConfirmModal
+                    isOpen={isDeleteModalOpen}
+                    onClose={() => setIsDeleteModalOpen(false)}
+                    onConfirm={handleDeleteAccount}
+                    title="Delete Account"
+                    message="Are you sure you want to delete your account? This will permanently remove all your data including uploaded pets and favorites."
+                    confirmButtonText="Delete Account"
+                    confirmButtonClass="bg-red-600 hover:bg-red-700"
+                    showPasswordField={true}
+                    password={password}
+                    setPassword={setPassword}
+                    isLoading={isDeleting}
+                />
             </div>
         </div>
     );

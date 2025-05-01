@@ -1,16 +1,15 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import {
-    doc,
-    getDoc,
-    setDoc,
-    deleteDoc,
-    // collection,
-    // getDocs,
-} from "firebase/firestore";
+import { doc, getDoc } from "firebase/firestore";
 import { db } from "../firebase/config";
 import { useAuth } from "../context/AuthContext";
+import {
+    isInFavorites,
+    addToFavorites,
+    removeFavorite,
+} from "../firebase/petServices";
 import { FaPaw, FaHeart } from "react-icons/fa";
+import { toast } from "react-toastify";
 
 // Import Components
 import PetImageGallery from "../components/PetImageGallery";
@@ -83,15 +82,11 @@ const PetDetail = () => {
 
             setFavoritesLoading(true);
             try {
-                const favoriteRef = doc(
-                    db,
-                    "users",
+                const isAlreadyFavorite = await isInFavorites(
                     currentUser.uid,
-                    "favorites",
                     id
                 );
-                const favoriteDoc = await getDoc(favoriteRef);
-                setIsFavorite(favoriteDoc.exists());
+                setIsFavorite(isAlreadyFavorite);
             } catch (error) {
                 console.error("Error checking favorite status:", error);
             } finally {
@@ -109,31 +104,22 @@ const PetDetail = () => {
         }
 
         setFavoritesLoading(true);
-        const favoriteRef = doc(db, "users", currentUser.uid, "favorites", id);
 
         try {
             if (isFavorite) {
                 // Remove from favorites
-                await deleteDoc(favoriteRef);
+                await removeFavorite(currentUser.uid, id);
                 setIsFavorite(false);
+                toast.success("Removed from favorites");
             } else {
-                // Add to favorites with proper data formatting
-                const favoriteData = {
-                    petId: id,
-                    addedAt: new Date().toISOString(), // Store as ISO string instead of Date object
-                    petName: pet.name || "",
-                    petImage: pet.photoURLs?.[0] || "",
-                    petBreed: pet.breed || "",
-                    petAge: Number(pet.age) || 0, // Ensure age is a number
-                    petGender: pet.gender || "",
-                    petLocation: pet.location || "",
-                };
-
-                await setDoc(favoriteRef, favoriteData);
+                // Add to favorites
+                await addToFavorites(currentUser.uid, id, pet);
                 setIsFavorite(true);
+                toast.success("Added to favorites");
             }
         } catch (error) {
             console.error("Error toggling favorite:", error);
+            toast.error("Failed to update favorites");
         } finally {
             setFavoritesLoading(false);
         }

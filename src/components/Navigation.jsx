@@ -61,6 +61,12 @@ const Navigation = () => {
                                         Favorites
                                     </Link>
                                     <Link
+                                        to="/my-pets"
+                                        className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-purple-50 hover:text-purple-700"
+                                    >
+                                        My Pets
+                                    </Link>
+                                    <Link
                                         to="/upload-pet"
                                         className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-purple-50 hover:text-purple-700"
                                     >
@@ -94,6 +100,12 @@ const Navigation = () => {
                                                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                                                 >
                                                     Your Profile
+                                                </Link>
+                                                <Link
+                                                    to="/my-pets"
+                                                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                                >
+                                                    Manage Pets
                                                 </Link>
                                                 <button
                                                     onClick={handleLogout}
@@ -163,6 +175,12 @@ const Navigation = () => {
                                     className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-purple-50 hover:text-purple-700"
                                 >
                                     Favorites
+                                </Link>
+                                <Link
+                                    to="/my-pets"
+                                    className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-purple-50 hover:text-purple-700"
+                                >
+                                    My Pets
                                 </Link>
                                 <Link
                                     to="/upload-pet"

@@ -1,9 +1,9 @@
 // filepath: c:\Desktop\Pet_Adoption\src\pages\Favorites.jsx
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { collection, getDocs, doc, deleteDoc } from "firebase/firestore";
-import { db } from "../firebase/config";
 import { useAuth } from "../context/AuthContext";
+import { getFavorites, removeFavorite } from "../firebase/petServices";
+import { toast } from "react-toastify";
 import { FaHeart, FaTrash, FaSadTear } from "react-icons/fa";
 
 // Cloudinary transformation function (same as in PetListing)
@@ -48,45 +48,11 @@ const Favorites = () => {
 
             setLoading(true);
             try {
-                const favoritesRef = collection(
-                    db,
-                    "users",
-                    currentUser.uid,
-                    "favorites"
-                );
-                const querySnapshot = await getDocs(favoritesRef);
-
-                const favoritesData = querySnapshot.docs.map((doc) => {
-                    const data = doc.data();
-                    // Handle both Date objects and ISO string formats
-                    let addedAtDate;
-                    if (data.addedAt) {
-                        if (typeof data.addedAt === "string") {
-                            // Handle ISO string format
-                            addedAtDate = new Date(data.addedAt);
-                        } else if (data.addedAt.toDate) {
-                            // Handle Firestore Timestamp
-                            addedAtDate = data.addedAt.toDate();
-                        } else {
-                            addedAtDate = new Date();
-                        }
-                    } else {
-                        addedAtDate = new Date();
-                    }
-
-                    return {
-                        id: doc.id,
-                        ...data,
-                        addedAt: addedAtDate,
-                    };
-                });
-
-                // Sort by most recently added
-                favoritesData.sort((a, b) => b.addedAt - a.addedAt);
-
+                const favoritesData = await getFavorites(currentUser.uid);
                 setFavorites(favoritesData);
             } catch (error) {
                 console.error("Error fetching favorites:", error);
+                toast.error("Failed to load your favorites");
             } finally {
                 setLoading(false);
             }
@@ -101,19 +67,14 @@ const Favorites = () => {
         setRemoveLoading((prev) => ({ ...prev, [petId]: true }));
 
         try {
-            const favoriteRef = doc(
-                db,
-                "users",
-                currentUser.uid,
-                "favorites",
-                petId
-            );
-            await deleteDoc(favoriteRef);
+            await removeFavorite(currentUser.uid, petId);
 
             // Update state
             setFavorites((prev) => prev.filter((fav) => fav.id !== petId));
+            toast.success("Removed from favorites");
         } catch (error) {
             console.error("Error removing favorite:", error);
+            toast.error("Failed to remove from favorites");
         } finally {
             setRemoveLoading((prev) => ({ ...prev, [petId]: false }));
         }
